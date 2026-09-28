@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  phone        String?
+  profileImage String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Product {
+  id              Int                @id @default(autoincrement())
+  name            String
+  slug            String             @unique
+  description     String?
+  shortDescription String?
+  price           Decimal            @default(0.0)
+  discountPrice   Decimal?
+  categoryId      Int
+  videoUrl        String?
+  mainImage       String?
+  status          Boolean            @default(true)
+  featured        Boolean            @default(false)
+  isVisible       Boolean            @default(true)
+  seoTitle        String?
+  seoDescription  String?
+  specifications  String             @default("{}")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  category        Category           @relation(fields: [categoryId], references: [id])
+  images          ProductImage[]
+  variations      ProductVariation[]
+  requests        CustomerRequest[]
+}
+
+model ProductImage {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  imageUrl  String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model ProductVariation {
+  id             Int     @id @default(autoincrement())
+  productId      Int
+  variationName  String
+  variationValue String
+  product        Product @relation(fields: [productId], references: [id])
+}
+
+model Customer {
+  id           Int               @id @default(autoincrement())
+  firstName    String
+  lastName     String?
+  gender       String?
+  email        String?
+  phone        String?
+  address      String?
+  city         String?
+  region       String?
+  postalCode   String?
+  country      String?
+  deviceId     String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  requests     CustomerRequest[]
+  customValues CustomFieldValue[]
+}
+
+model CustomerRequest {
+  id               Int       @id @default(autoincrement())
+  requestId        String    @unique
+  customerId       Int
+  productId        Int
+  variation        String?
+  status           String    @default("New")
+  notes            String?
+  adminComments    String?
+  submittedAt      DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  syncStatus       String    @default("pending")
+  syncedAt         DateTime?
+  syncError        String?
+  googleSheetRow   Int?
+  customer         Customer  @relation(fields: [customerId], references: [id])
+  product          Product   @relation(fields: [productId], references: [id])
+}
+
+model CustomField {
+  id           Int                @id @default(autoincrement())
+  fieldName    String
+  fieldType    String
+  required     Boolean            @default(false)
+  options      String?
+  defaultValue String?
+  placeholder  String?
+  active       Boolean            @default(true)
+  sortOrder    Int                @default(0)
+  isVisible    Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  values       CustomFieldValue[]
+}
+
+model CustomFieldValue {
+  id         Int         @id @default(autoincrement())
+  customerId Int
+  fieldId    Int
+  value      String
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  field      CustomField @relation(fields: [fieldId], references: [id])
+}
+
+model WebsiteSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String?
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String?
+  type      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model GoogleSpreadsheet {
+  id                Int      @id @default(autoincrement())
+  name              String
+  spreadsheetId     String
+  serviceAccountKey String
+  selectedSheetName String?
+  isActive          Boolean  @default(true)
+  lastTestedAt      DateTime?
+  lastTestStatus    String?
+  lastSyncAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
