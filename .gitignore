@@ -58,3 +58,6 @@ next-env.d.ts
 .claude/
 .windsurf/
 skills-lock.json
+
+# Local Netlify folder
+.netlify
